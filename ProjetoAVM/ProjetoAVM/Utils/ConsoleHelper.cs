@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace ProjetoAVM.Utils
 {
-    public class ConsoleHelper
+    static public class ConsoleHelper
     {
-        public string Question(string text)
+        static public string Question(string text)
         {
             Console.WriteLine(text);
             return Console.ReadLine();
         }
 
-        public string KeyInSelect(List<string> keys,string text)
+        static public string KeyInSelect(List<string> keys,string text)
         {
             Console.WriteLine(text);
             for(int i = 0; i <keys.Count; i++)
