@@ -13,14 +13,14 @@ public class Orchestrator
 
         string AskAndReturnSearchTerm()
         {
-            string readline = new ConsoleHelper().Question("Type a search term: ");
+            string readline = ConsoleHelper.Question("Type a search term: ");
             return readline;
         }
 
         string AskAndReturnPrefix()
         {
             List<string> prefixes = new List<string> {"Who is", "What is", "The history of"};
-            string selectedPrefixIndex = new ConsoleHelper().KeyInSelect(prefixes, "Choose one option:");
+            string selectedPrefixIndex = ConsoleHelper.KeyInSelect(prefixes, "Choose one option:");
 
             return selectedPrefixIndex;
         }

@@ -8,7 +8,7 @@ namespace ProjetoAVM
 {
     public class Program
     {
-        public static async Task Main(string[] args) => await new Orchestrator().Start();
+        public static async Task Main(string[] args) => await Orchestrator.Start();
 
     }
 }
