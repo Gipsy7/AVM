@@ -1,31 +1,15 @@
-﻿using ProjetoAVM.Utils;
+﻿using ProjetoAVM.Entities;
+using ProjetoAVM.Robots;
+using ProjetoAVM.User;
+using ProjetoAVM.Utils;
 
 public class Orchestrator
 {
-    public async Task Start()
+    static public async Task Start()
     {
+        Content content = new Content();
 
-        Dictionary<string, object> content = new Dictionary<string, object>();
-
-        content["searchTerm"] = AskAndReturnSearchTerm();
-        Console.Clear();
-        content["prefix"] = AskAndReturnPrefix();
-
-        string AskAndReturnSearchTerm()
-        {
-            string readline = ConsoleHelper.Question("Type a search term: ");
-            return readline;
-        }
-
-        string AskAndReturnPrefix()
-        {
-            List<string> prefixes = new List<string> {"Who is", "What is", "The history of"};
-            string selectedPrefixIndex = ConsoleHelper.KeyInSelect(prefixes, "Choose one option:");
-
-            return selectedPrefixIndex;
-        }
-
-        Console.WriteLine(content["searchTerm"]);
-        Console.WriteLine(content["prefix"]);
+        new UserInput(content);
+        await new TxRobot(content).StartTxRobot();
     }
 }
