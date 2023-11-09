@@ -475,3 +475,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+/ProjetoAVM/ProjetoAVM/GoogleNL/credential.json

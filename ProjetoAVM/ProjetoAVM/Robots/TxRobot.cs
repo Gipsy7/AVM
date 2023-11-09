@@ -1,15 +1,16 @@
 ﻿using WikiClientLibrary.Client;
 using WikiClientLibrary.Pages;
 using WikiClientLibrary.Sites;
-using System.Text.RegularExpressions;
-using WikiClientLibrary.Generators;
-using System.Xml;
-using HtmlAgilityPack;
 using ProjetoAVM.Utils;
-using WikiClientLibrary;
-using WikiClientLibrary.Files;
 using PragmaticSegmenterNet;
 using ProjetoAVM.Entities;
+using Mosaik.Core;
+using Catalyst;
+using Language = Mosaik.Core.Language;
+using Catalyst.Models;
+using Google.Protobuf;
+using Newtonsoft.Json;
+using HtmlAgilityPack;
 
 namespace ProjetoAVM.Robots
 {
@@ -25,10 +26,18 @@ namespace ProjetoAVM.Robots
 
         public async Task StartTxRobot()
         {
+            //Catch content
             await ConnectToWikiPedia();
             await FetchContentFromWikipedia();
-            _content.SourceContentSanitized = SanitizeContent(_content.SourceContentOriginal.ToString());
+
+            //Organize content
+            _content.SourceContentSanitized = SanitizeContent(_content.SourceContentOriginal?.ToString());
             _content.Sentences.Text = BreakContentIntoSentences(_content.SourceContentSanitized);
+
+            //Extract properties
+            await GoogleNL.GoogleNL.asyncGoogleNL();
+            await AnalyzeSentencesAsync(_content.Sentences.Text);
+            //GetParametersNLP(_content.Sentences.Text);
         }
 
         public async Task FetchContentFromWikipedia()
@@ -38,16 +47,18 @@ namespace ProjetoAVM.Robots
             _content.SourceContentOriginal = page.Content;
         }
 
-        public string SanitizeContent(string content)
+        public string? SanitizeContent(string? content)
         {
-             var result = WikipediaContentFilter.FilterContentWikipedia(content);
-            return result;
+            if (string.IsNullOrEmpty(content)) return "";
+            
+            var result = WikipediaContentFilter.FilterContentWikipedia(content);
+            return string.IsNullOrEmpty(result) ? "" : result;
         }
 
-        public string[] BreakContentIntoSentences(string content)
+        public string[] BreakContentIntoSentences(string? content)
         {
-            IReadOnlyList<string> result = Segmenter.Segment(content,Language.English);
-            var result1 = result.ToArray();
+            if (string.IsNullOrEmpty(content)) return new string[1];
+            IReadOnlyList<string> result = Segmenter.Segment(content, PragmaticSegmenterNet.Language.English);
             return result.ToArray();
         }
 
@@ -61,6 +72,38 @@ namespace ProjetoAVM.Robots
             _site = new WikiSite(client, "https://pt.wikipedia.org/w/api.php");
 
             await _site.Initialization;
+        }
+
+        public async Task GetParametersNLPAsync(string text)
+        {
+            Catalyst.Models.Portuguese.Register();
+
+            Storage.Current = new DiskStorage("catalyst-models");
+
+            var npl = await Pipeline.ForAsync(Language.Portuguese);
+            var doc = new Document(text, Language.Portuguese);
+            var result = npl.ProcessSingle(doc);
+
+            Console.WriteLine(result.ToJson());
+        }
+
+        public async Task AnalyzeSentencesAsync(string[] text)
+        {
+            int maxSentences = text.Length > 10 ? 10 : text.Length;
+
+            if (string.IsNullOrEmpty(text[0])) maxSentences = 0;
+
+            for (int i = 0; i < maxSentences; i++)
+            {
+                var response = await GoogleNL.GoogleNL.GoogleAnalyzeTextAsync(text[i]);
+
+                var teste = JsonConvert.DeserializeObject(response.Entities.ToString());
+
+                Console.WriteLine("*================================================================================================*");
+                Console.WriteLine(text[i]);
+                Console.WriteLine("*================================================================================================*");
+            }
+
         }
     }
 }
